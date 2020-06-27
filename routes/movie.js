@@ -17,8 +17,9 @@ router.put('/movie/:id', MovieController.update);
 router.delete('/delete/:id',MovieController.delete);
 router.get('/search/:search',MovieController.search);
 
-//agregar rutas para almacenamiento y admin de Files
-
+//Agregar rutas para almacenamiento y admin de Files
+router.post('/upload-image/:id?', md_upload, MovieController.upload);
+router.get('/get-image/:image', MovieController.getImage);
 
 
 

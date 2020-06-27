@@ -47,7 +47,7 @@ var Moviecontroller = {
                 movie.image = null;
             }
 
-            // Guardar el articulo
+            // Guardar la pelicula
             movie.save((err, movieStored) => {
 
                 if (err || !movieStored) {
@@ -124,7 +124,7 @@ var Moviecontroller = {
             });
         }
 
-        // Buscar el articulo
+        // Buscar la película
         Movie.findById(movieId, (err, movie) => {
 
             if (err || !movie) {
@@ -143,7 +143,7 @@ var Moviecontroller = {
         });
     },
     update: (req, res) => {
-        // Recoger el id del articulo por la url
+        // Recoger el id del película por la url
         var movieId = req.params.id;
 
         // Recoger los datos que llegan por put
@@ -182,7 +182,7 @@ var Moviecontroller = {
 
                 return res.status(200).send({
                     status: 'success',
-                    article: movieUpdated
+                    movie: movieUpdated
                 });
             });
         } else {
@@ -217,7 +217,7 @@ var Moviecontroller = {
 
             return res.status(200).send({
                 status: 'success',
-                article: movieRemoved
+                movie: movieRemoved
             });
 
         }); 
@@ -256,8 +256,93 @@ var Moviecontroller = {
             });
 
         });
-    }
+    },
     //Agregar almacenamiento de file para imagen de pelicula
+      upload: (req, res) => {
+        
+        // Recoger el fichero de la petición
+        var file_name = 'Imagen';
+
+        //No se recibio un archivo
+        if(!req.files){
+            return res.status(404).send({
+                status: 'error',
+                message: file_name
+            });
+        }
+
+        //Nombre y la extensión del archivo
+        var file_path = req.files.file0.path;
+     
+        var file_split = file_path.split('\\');
+
+        // * ADVERTENCIA * EN LINUX O MAC
+        // var file_split = file_path.split('/');
+
+        // Nombre del archivo
+        var file_name = file_split[2];
+
+        // Extensión del fichero
+        var extension_split = file_name.split('\.');
+        var file_ext = extension_split[1];
+
+        // Comprobar la extension, solo imagenes
+        if(file_ext != 'png' && file_ext != 'jpg' && file_ext != 'jpeg' && file_ext != 'gif'){
+            
+            // borrar el archivo subido
+            fs.unlink(file_path, (err) => {
+                return res.status(200).send({
+                    status: 'error',
+                    message: 'La extensión de la imagen no es válida'
+                });
+            });
+        
+        }else{
+             // Si todo es válido, sacando id de la url
+             var movieId = req.params.id;
+
+             if(movieId){
+                // Buscar el objeto pelicula, asignarle el nombre de la imagen y actualizarlo
+                Movie.findOneAndUpdate({_id: movieId }, {image: file_name}, {new:true}, (err, movieUpdated) => {
+
+                    if(err || !movieUpdated){
+                        return res.status(200).send({
+                            status: 'error',
+                            message: 'Error al guardar imagen'
+                        });
+                    }
+
+                    return res.status(200).send({
+                        status: 'success',
+                        movie: movieUpdated
+                    });
+                });
+             }else{
+                return res.status(200).send({
+                    status: 'success',
+                    image: file_name
+                });
+             }
+            
+        }   
+    },
+
+    getImage: (req, res) => {
+        var file = req.params.image;
+        var path_file = './upload/movies/'+file;
+
+        fs.exists(path_file, (exists) => {
+            if(exists){
+                return res.sendFile(path.resolve(path_file));
+            }else{
+                return res.status(404).send({
+                    status: 'error',
+                    message: 'La imagen no existe'
+                });
+            }
+        });
+    },
+
 
 }
 
